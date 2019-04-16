@@ -120,6 +120,7 @@ void retroceso(int &i) {
 
 }
 
+
 /**
  * Metodo que ejecuta el salto de linea
  */
