@@ -8,13 +8,16 @@
 
 #include "TramaDatos.h"
 
-void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i) {
+void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i, bool msj) {
 	int numTramasDatos;
 	int c;
 	int indice = 0;
 	char datos[255];
-	vector[i] = '\n'; //Anadimos \n en el final del mensaje e incrementamos el tamano de este
-	i++;
+
+	if (msj) {
+		vector[i] = '\n'; //Anadimos \n en el final del mensaje e incrementamos el tamano de este
+		i++;
+	}
 
 	numTramasDatos = calcularNumeroTramasDatos(i);
 
@@ -124,15 +127,11 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 			if (esFichero) {
 
 				if (td.BCE == calcularBCE(td.Datos, td.L)) {
-					//TODO: recibiendo fichero de...
-					//TODO: y nombre de fichero...
+
 					if (numTrama == 1) {
-						string str = td.Datos;
-						printf("longitud de nombre fichero: %d", str.length());
-						flujoFichero.open(str);
-						if (flujoFichero.is_open())
-							printf("abierto flujo: %s, longitud %s", td.Datos,
-									str.length());
+						string s(td.Datos);
+						flujoFichero.open(s + ".txt");
+
 					} else if (numTrama == 2) {
 						printf("Recibiendo fichero por %s\n", td.Datos);
 					} else
@@ -154,9 +153,6 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 }
 
 void enviarFichero(HANDLE PuertoCOM) {
-	//printf("\nEnviando fichero\n");
-	int c;
-	char datos[255];
 	ifstream flujoFicheroLectura;
 	int longitudFichero = 0;
 	char fichero[255];
@@ -178,12 +174,14 @@ void enviarFichero(HANDLE PuertoCOM) {
 		getline(flujoFicheroLectura, linea, '\n'); //Primera linea nombre del fichero
 		char nombreFichero[linea.length()];
 		strcpy(nombreFichero, linea.c_str());
-		enviarTramaDatos(PuertoCOM, nombreFichero, linea.length());
+		nombreFichero[linea.length()] = '\0';
+		enviarTramaDatos(PuertoCOM, nombreFichero, linea.length(), false);
 
 		getline(flujoFicheroLectura, linea, '\n'); //Segunda linea autor
 		char autor[linea.length()];
 		strcpy(autor, linea.c_str());
-		enviarTramaDatos(PuertoCOM, autor, linea.length());
+		autor[linea.length()] = '\0';
+		enviarTramaDatos(PuertoCOM, autor, linea.length(), false);
 		printf("Enviando fichero por %s\n", autor);
 
 		//Envio del resto del fichero
@@ -193,23 +191,23 @@ void enviarFichero(HANDLE PuertoCOM) {
 			longitudFichero = flujoFicheroLectura.gcount();
 			fichero[longitudFichero] = '\0';
 
-			EnviarCaracter(PuertoCOM, SYN); //Sincronismo = SYN =22
-			EnviarCaracter(PuertoCOM, 'T'); //Direccion=(En principio fijo a ’T’)
-			EnviarCaracter(PuertoCOM, STX); //Control = STX = 02;
-			EnviarCaracter(PuertoCOM, '0'); //NumTrama = (En principio fijo a ‘0’);
+//			EnviarCaracter(PuertoCOM, SYN); //Sincronismo = SYN =22
+//			EnviarCaracter(PuertoCOM, 'T'); //Direccion=(En principio fijo a ’T’)
+//			EnviarCaracter(PuertoCOM, STX); //Control = STX = 02;
+//			EnviarCaracter(PuertoCOM, '0'); //NumTrama = (En principio fijo a ‘0’);
+//
+//			//Enviamos el campo LONG
+//			EnviarCaracter(PuertoCOM, longitudFichero);
+//
+//			//Enviamos Campo de datos
+//			for (c = 0; c < longitudFichero && c < 254; c++) {
+//
+//				EnviarCaracter(PuertoCOM, fichero[c]);
+//				datos[c] = fichero[c];
+//			}
 
-			//Enviamos el campo LONG
-			EnviarCaracter(PuertoCOM, longitudFichero);
-
-			//Enviamos Campo de datos
-			for (c = 0; c < longitudFichero && c < 254; c++) {
-
-				EnviarCaracter(PuertoCOM, fichero[c]);
-				datos[c] = fichero[c];
-			}
-
-			EnviarCaracter(PuertoCOM, calcularBCE(datos, c)); //Calculo y envio del BCE
-
+			//EnviarCaracter(PuertoCOM, calcularBCE(datos, c)); //Calculo y envio del BCE
+			enviarTramaDatos(PuertoCOM, fichero, longitudFichero, false);
 			recepcion(PuertoCOM, numCampo, numDato, t, td, esTramaControl,
 					esFichero, flujoFicheroEscritura);
 

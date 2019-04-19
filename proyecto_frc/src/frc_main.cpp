@@ -92,7 +92,7 @@ void envio(char vector[], int &i) {
 		switch (car) {
 
 		case F1:
-			enviarTramaDatos(PuertoCOM, vector, i);
+			enviarTramaDatos(PuertoCOM, vector, i, true);
 			printf("%c", '\n');
 			i = 0;
 			break;
