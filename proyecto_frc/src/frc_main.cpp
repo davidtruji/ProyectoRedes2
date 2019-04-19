@@ -99,6 +99,10 @@ void envio(char vector[], int &i) {
 		case F2:
 			seleccionarTramaControl(PuertoCOM);
 			break;
+		case F3:
+			enviarFichero(PuertoCOM);
+			break;
+
 		default:
 			break;
 		}
@@ -120,7 +124,6 @@ void retroceso(int &i) {
 
 }
 
-
 /**
  * Metodo que ejecuta el salto de linea
  */
@@ -132,23 +135,25 @@ void salto(int &i, char vector[]) {
 	}
 }
 
-
-
 int main() {
 	char vector[MAX + 2];
-	int i = 0, numDato = 0, campo = 1;
+	int i = 0, numDato = 0, campoTrama = 1;
 	TramaControl t;
 	TramaDatos td;
-	bool esTramaControl = false;
 	char car = 0;
-
+	ofstream flujoFichero;
+	bool esTramaControl = false, esFichero = false;
 	elegirPuerto();
 
 	// Lectura y escritura simultánea de caracteres:
 	while (car != ESC) {
 		//car = RecibirCaracter(PuertoCOM);
 		//if (car)
-		recepcion(PuertoCOM, campo, numDato, t, td, esTramaControl);
+		//recepcion(PuertoCOM, campo, numDato, t, td, esTramaControl);
+
+		recepcion(PuertoCOM, campoTrama, numDato, t, td, esTramaControl,
+				esFichero, flujoFichero);
+
 		if (kbhit()) {
 			car = getch();
 

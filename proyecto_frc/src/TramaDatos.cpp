@@ -13,7 +13,6 @@ void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i) {
 	int c;
 	int indice = 0;
 	char datos[255];
-
 	vector[i] = '\n'; //Anadimos \n en el final del mensaje e incrementamos el tamano de este
 	i++;
 
@@ -58,7 +57,8 @@ int calcularNumeroTramasDatos(int i) {
 }
 
 void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
-		TramaDatos &td, bool &esTramaControl) {
+		TramaDatos &td, bool &esTramaControl, bool &esFichero,
+		ofstream &flujoFichero) {
 	char car = 0;
 	car = RecibirCaracter(PuertoCOM);
 
@@ -66,18 +66,35 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
 
 		switch (numCampo) {
 		case 1:
+//			if (car == SYN) {
+//				t.S = car;
+//				td.S = car;
+//				numCampo++;
+//			}
+
 			if (car == SYN) {
 				t.S = car;
 				td.S = car;
 				numCampo++;
+			} else if (car == '$') {
+				esFichero = true;
+				flujoFichero.open("FRC-R.txt");
+				printf("\nRecibiendo fichero\n");
+
+			} else if (car == '#') {
+				esFichero = false;
+				flujoFichero.close();
+				printf("\nFichero recibido\n");
 			}
+
 			break;
+
 		case 2:
 			t.D = car;
 			td.D = car;
 			numCampo++;
-
 			break;
+
 		case 3:
 			t.C = car;
 			td.C = car;
@@ -87,8 +104,8 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
 				esTramaControl = false;
 
 			numCampo++;
-
 			break;
+
 		case 4:
 			t.NT = car;
 			td.N = car;
@@ -97,22 +114,31 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
 				mostrarTramaControl(t, true);
 			} else
 				numCampo++;
-
 			break;
+
 		case 5:
 			td.L = car;
-			numCampo++; //TODO: Procesar cadena entera en vez de caracter a caracter.
 			RecibirCadena(PuertoCOM, td.Datos, td.L);
 			td.Datos[td.L + 1] = '\0';
-
+			numCampo++; //TODO: Procesar cadena entera en vez de caracter a caracter.
 			break;
+
 		case 6:
 			td.BCE = car;
 			numCampo = 1;
+			if (esFichero) {
+				if (flujoFichero.is_open()) {
+					if (td.BCE == calcularBCE(td.Datos, td.L))
+						flujoFichero.write(td.Datos, td.L);
+					else
+						printf("\nError al recibir trama BCE incorrecto...\n");
 
-			mostrarTramaDatos(td);
-
+				} else
+					printf("\nError al intentar escribir en fichero...\n");
+			} else
+				mostrarTramaDatos(td);
 			break;
+
 		default:
 			break;
 		}
@@ -120,6 +146,159 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
 	}
 
 }
+
+void enviarFichero(HANDLE PuertoCOM) {
+	printf("\nEnviando fichero\n");
+	int c;
+	char datos[255];
+	ifstream flujoFicheroLectura;
+	int longitudFichero = 0;
+	char fichero[255];
+	flujoFicheroLectura.open("Fenvio.txt");
+
+	int numCampo = 1, numDato = 0;
+	TramaControl t;
+	TramaDatos td;
+	bool esTramaControl = false, esFichero = false;
+	ofstream flujoFicheroEscritura;
+
+	if (flujoFicheroLectura.is_open()) {
+
+		//Enviamos caracter fichero '$' antes de la primera trama de datos
+		EnviarCaracter(PuertoCOM, '$');
+
+		while (!flujoFicheroLectura.eof()) {
+
+			flujoFicheroLectura.read(fichero, 254);
+			longitudFichero = flujoFicheroLectura.gcount();
+			fichero[longitudFichero] = '\0';
+
+			EnviarCaracter(PuertoCOM, SYN); //Sincronismo = SYN =22
+			EnviarCaracter(PuertoCOM, 'T'); //Direccion=(En principio fijo a ’T’)
+			EnviarCaracter(PuertoCOM, STX); //Control = STX = 02;
+			EnviarCaracter(PuertoCOM, '0'); //NumTrama = (En principio fijo a ‘0’);
+
+			//Enviamos el campo LONG
+			EnviarCaracter(PuertoCOM, longitudFichero);
+
+			//Enviamos Campo de datos
+			for (c = 0; c < longitudFichero && c < 254; c++) {
+
+				EnviarCaracter(PuertoCOM, fichero[c]);
+				datos[c] = fichero[c];
+			}
+
+			EnviarCaracter(PuertoCOM, calcularBCE(datos, c)); //Calculo y envio del BCE
+
+			recepcion(PuertoCOM, numCampo, numDato, t, td, esTramaControl,
+					esFichero, flujoFicheroEscritura);
+
+		}
+		//Enviamos caracter fichero '#' despues de la ultima trama
+		EnviarCaracter(PuertoCOM, '#');
+
+		flujoFicheroLectura.close();
+		printf("\nFichero enviado\n");
+	} else
+		printf("\nError al intentar abrir el fichero...\n");
+
+}
+
+//void recepcion2(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
+//		TramaDatos &td, bool &esTramaControl, bool &esFichero,
+//		ofstream &flujoFichero) {
+//	char car = 0;
+//	car = RecibirCaracter(PuertoCOM);
+//
+//	if (car != 0) {
+//
+//		switch (numCampo) {
+//		case 1:
+//			if (car == SYN) {
+//				t.S = car;
+//				td.S = car;
+//				numCampo++;
+//			} else if (car == '$') {
+//				esFichero = true;
+//				flujoFichero.open("FRC-R.txt");
+//				printf("\nRecibiendo fichero\n");
+//
+//			} else if (car == '#') {
+//				esFichero = false;
+//				flujoFichero.close();
+//				printf("\nFichero recibido\n");
+//			}
+//
+//			break;
+//		case 2:
+//			t.D = car;
+//			td.D = car;
+//			numCampo++;
+//
+//			break;
+//		case 3:
+//			t.C = car;
+//			td.C = car;
+//			if (car != STX)
+//				esTramaControl = true;
+//			else
+//				esTramaControl = false;
+//
+//			numCampo++;
+//
+//			break;
+//		case 4:
+//			t.NT = car;
+//			td.N = car;
+//			if (esTramaControl) {
+//				numCampo = 1;
+//				mostrarTramaControl(t);
+//			} else
+//				numCampo++;
+//
+//			break;
+//		case 5:
+//			td.L = car;
+//			numCampo++;
+//
+//			break;
+//
+//		case 6:
+//
+//			td.Datos[numDato] = car;
+//			if (numDato < td.L - 1)
+//				numDato++;
+//			else {
+//				td.Datos[numDato + 1] = '\0';
+//				numCampo++;
+//				numDato = 0;
+//
+//			}
+//
+//			break;
+//		case 7:
+//			td.BCE = car;
+//			numCampo = 1;
+//			if (esFichero) {
+//				if (flujoFichero.is_open()) {
+//					if (td.BCE == calcularBCE(td.Datos, td.L))
+//						flujoFichero.write(td.Datos, td.L);
+//					else
+//						printf("\nError al recibir trama BCE incorrecto...\n");
+//
+//				} else
+//					printf("\nError al intentar escribir en fichero...\n");
+//			} else
+//				mostrarTramaDatos(td);
+//
+//			break;
+//		default:
+//			break;
+//		}
+//
+//	}
+//
+//}
 
 void mostrarTramaDatos(TramaDatos td) {
 	if (td.BCE == calcularBCE(td.Datos, td.L)) {

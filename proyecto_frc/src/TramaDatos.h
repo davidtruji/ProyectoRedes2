@@ -31,9 +31,9 @@ void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i);
 int calcularNumeroTramasDatos(int i);
 unsigned char calcularBCE(char datos[], int l);
 void mostrarTramaDatos(TramaDatos td);
-void recepcion(HANDLE PuertoCOM,int &numCampo, int &numDato, TramaControl &t, TramaDatos &td,
-		bool &esTramaControl);
-
-
+void enviarFichero(HANDLE PuertoCOM);
+void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
+		TramaDatos &td, bool &esTramaControl, bool &esFichero,
+		ofstream &flujoFichero);
 
 #endif /* TRAMADATOS_H_ */
