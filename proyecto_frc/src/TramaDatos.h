@@ -32,7 +32,7 @@ int calcularNumeroTramasDatos(int i);
 unsigned char calcularBCE(char datos[], int l);
 void mostrarTramaDatos(TramaDatos td);
 void enviarFichero(HANDLE PuertoCOM);
-void recepcion(HANDLE PuertoCOM, int &numCampo, int &numDato, TramaControl &t,
+void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 		TramaDatos &td, bool &esTramaControl, bool &esFichero,
 		ofstream &flujoFichero);
 

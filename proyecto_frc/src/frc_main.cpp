@@ -137,7 +137,7 @@ void salto(int &i, char vector[]) {
 
 int main() {
 	char vector[MAX + 2];
-	int i = 0, numDato = 0, campoTrama = 1;
+	int i = 0, numTrama = 0, campoTrama = 1;
 	TramaControl t;
 	TramaDatos td;
 	char car = 0;
@@ -151,7 +151,7 @@ int main() {
 		//if (car)
 		//recepcion(PuertoCOM, campo, numDato, t, td, esTramaControl);
 
-		recepcion(PuertoCOM, campoTrama, numDato, t, td, esTramaControl,
+		recepcion(PuertoCOM, campoTrama, numTrama, t, td, esTramaControl,
 				esFichero, flujoFichero);
 
 		if (kbhit()) {
