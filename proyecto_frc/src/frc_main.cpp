@@ -43,7 +43,8 @@ void elegirPuerto() {
 	char tecla;
 
 	while (!opcion) {
-		printf("\nUse la teclas: 1, 2, 3, o 4 para abrir el Puerto COM correspondiente.\n");
+		printf(
+				"\nUse la teclas: 1, 2, 3, o 4 para abrir el Puerto COM correspondiente.\n");
 
 		while (!kbhit()) {
 		}
@@ -71,7 +72,7 @@ void elegirPuerto() {
 		}
 
 		if (PuertoCOM != NULL) {
-			printf("Puerto COM %c abierto correctamente\n\n",tecla);
+			printf("Puerto COM %c abierto correctamente\n\n", tecla);
 		} else
 			opcion = false;
 
@@ -92,7 +93,7 @@ void envio(char vector[], int &i) {
 		switch (car) {
 
 		case F1:
-			enviarTramaDatos(PuertoCOM, vector, i, true);
+			enviarMensajePorTramas(PuertoCOM, vector, i);
 			printf("%c", '\n');
 			i = 0;
 			break;
@@ -136,7 +137,7 @@ void salto(int &i, char vector[]) {
 }
 
 int main() {
-	system("title Práctica de Redes 2018/19");
+	system("title FRC - Práctica de laboratorio 2018/19");
 	char vector[MAX + 2];
 	int i = 0, numTrama = 0, campoTrama = 1;
 	TramaControl t;
@@ -145,12 +146,11 @@ int main() {
 	ofstream flujoFichero;
 	bool esTramaControl = false, esFichero = false;
 	elegirPuerto();
+	printf(
+			"\n F1 - ENVIO DE TRAMA DE DATOS.\n F2 - ENVIO DE TRAMA DE CONTROL.\n F3 - ENVIO DE FICHERO.\n F4 - PROTOCOLO MAESTRO-ESCLAVO.\n  *F5 - SIMULA ERROR EN PROTOCOLO MAESTRO-ESCLAVO.\n");
 
 	// Lectura y escritura simultánea de caracteres:
 	while (car != ESC) {
-		//car = RecibirCaracter(PuertoCOM);
-		//if (car)
-		//recepcion(PuertoCOM, campo, numDato, t, td, esTramaControl);
 
 		recepcion(PuertoCOM, campoTrama, numTrama, t, td, esTramaControl,
 				esFichero, flujoFichero);
