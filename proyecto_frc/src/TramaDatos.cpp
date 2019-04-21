@@ -8,13 +8,13 @@
 
 #include "TramaDatos.h"
 
-void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i, bool msj) {
+void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i, bool f1) {
 	int numTramasDatos;
 	int c;
 	int indice = 0;
 	char datos[255];
 
-	if (msj) {
+	if (f1) {
 		vector[i] = '\n'; //Anadimos \n en el final del mensaje e incrementamos el tamano de este
 		i++;
 	}
@@ -82,7 +82,7 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 			} else if (car == '@') {
 				esFichero = false;
 				flujoFichero.close();
-				printf("\nFichero recibido\n");
+				printf("Fichero recibido\n");
 			}
 
 			break;
@@ -130,15 +130,15 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 
 					if (numTrama == 1) {
 						string s(td.Datos);
-						flujoFichero.open(s + ".txt");
+						flujoFichero.open(s);
 
 					} else if (numTrama == 2) {
-						printf("Recibiendo fichero por %s\n", td.Datos);
+						printf("\nRecibiendo fichero por %s\n", td.Datos);
 					} else
 						flujoFichero.write(td.Datos, td.L);
 
 				} else
-					printf("\nError al recibir trama BCE incorrecto...\n");
+					printf("Error en la recepcion de la trama del fichero\n");
 
 			} else
 				mostrarTramaDatos(td);
@@ -182,7 +182,7 @@ void enviarFichero(HANDLE PuertoCOM) {
 		strcpy(autor, linea.c_str());
 		autor[linea.length()] = '\0';
 		enviarTramaDatos(PuertoCOM, autor, linea.length(), false);
-		printf("Enviando fichero por %s\n", autor);
+		printf("\nEnviando fichero por %s\n", autor);
 
 		//Envio del resto del fichero
 		while (!flujoFicheroLectura.eof()) {
@@ -191,22 +191,6 @@ void enviarFichero(HANDLE PuertoCOM) {
 			longitudFichero = flujoFicheroLectura.gcount();
 			fichero[longitudFichero] = '\0';
 
-//			EnviarCaracter(PuertoCOM, SYN); //Sincronismo = SYN =22
-//			EnviarCaracter(PuertoCOM, 'T'); //Direccion=(En principio fijo a ’T’)
-//			EnviarCaracter(PuertoCOM, STX); //Control = STX = 02;
-//			EnviarCaracter(PuertoCOM, '0'); //NumTrama = (En principio fijo a ‘0’);
-//
-//			//Enviamos el campo LONG
-//			EnviarCaracter(PuertoCOM, longitudFichero);
-//
-//			//Enviamos Campo de datos
-//			for (c = 0; c < longitudFichero && c < 254; c++) {
-//
-//				EnviarCaracter(PuertoCOM, fichero[c]);
-//				datos[c] = fichero[c];
-//			}
-
-			//EnviarCaracter(PuertoCOM, calcularBCE(datos, c)); //Calculo y envio del BCE
 			enviarTramaDatos(PuertoCOM, fichero, longitudFichero, false);
 			recepcion(PuertoCOM, numCampo, numDato, t, td, esTramaControl,
 					esFichero, flujoFicheroEscritura);
@@ -216,7 +200,7 @@ void enviarFichero(HANDLE PuertoCOM) {
 		EnviarCaracter(PuertoCOM, '@');
 
 		flujoFicheroLectura.close();
-		printf("\nFichero enviado\n");
+		printf("Fichero enviado\n");
 	} else
 		printf("\nError al intentar abrir el fichero...\n");
 

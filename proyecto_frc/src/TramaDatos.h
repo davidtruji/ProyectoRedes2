@@ -27,7 +27,7 @@ struct TramaDatos {
 	unsigned char BCE; //(Entre 1 y 254);
 };
 
-void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i, bool msj);
+void enviarTramaDatos(HANDLE PuertoCOM, char vector[], int i, bool f1);
 int calcularNumeroTramasDatos(int i);
 unsigned char calcularBCE(char datos[], int l);
 void mostrarTramaDatos(TramaDatos td);

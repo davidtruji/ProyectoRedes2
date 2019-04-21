@@ -43,7 +43,7 @@ void elegirPuerto() {
 	char tecla;
 
 	while (!opcion) {
-		printf("\nSELECCIONE UN PUERTO EN SERIE: 1, 2, 3, o 4\n");
+		printf("\nUse la teclas: 1, 2, 3, o 4 para abrir el Puerto COM correspondiente.\n");
 
 		while (!kbhit()) {
 		}
@@ -65,13 +65,13 @@ void elegirPuerto() {
 			PuertoCOM = AbrirPuerto("COM4", 9600, 8, 0, 0);
 			break;
 		default:
-			printf("OPCION NO VALIDA\n");
+			printf("Tecla no valida, vuelva a intentarlo...\n");
 			opcion = false;
 			break;
 		}
 
 		if (PuertoCOM != NULL) {
-			printf("PUERTO ABIERTO CORRECTAMENTE\n");
+			printf("Puerto COM %c abierto correctamente\n\n",tecla);
 		} else
 			opcion = false;
 
@@ -136,6 +136,7 @@ void salto(int &i, char vector[]) {
 }
 
 int main() {
+	system("title Práctica de Redes 2018/19");
 	char vector[MAX + 2];
 	int i = 0, numTrama = 0, campoTrama = 1;
 	TramaControl t;
