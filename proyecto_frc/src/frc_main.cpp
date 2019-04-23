@@ -144,7 +144,8 @@ int main() {
 	TramaDatos td;
 	char car = 0;
 	ofstream flujoFichero;
-	bool esTramaControl = false, esFichero = false;
+	bool esTramaControl = false, esFichero = false, finFichero = false;
+
 	elegirPuerto();
 	printf(
 			"\n F1 - ENVIO DE TRAMA DE DATOS.\n F2 - ENVIO DE TRAMA DE CONTROL.\n F3 - ENVIO DE FICHERO.\n F4 - PROTOCOLO MAESTRO-ESCLAVO.\n  *F5 - SIMULA ERROR EN PROTOCOLO MAESTRO-ESCLAVO.\n");
@@ -153,7 +154,7 @@ int main() {
 	while (car != ESC) {
 
 		recepcion(PuertoCOM, campoTrama, numTrama, t, td, esTramaControl,
-				esFichero, flujoFichero);
+				esFichero, finFichero, flujoFichero);
 
 		if (kbhit()) {
 			car = getch();

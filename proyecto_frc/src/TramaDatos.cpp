@@ -78,7 +78,7 @@ int calcularNumeroTramasDatos(int i) {
 }
 
 void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
-		TramaDatos &td, bool &esTramaControl, bool &esFichero,
+		TramaDatos &td, bool &esTramaControl, bool &esFichero, bool &finFichero,
 		ofstream &flujoFichero) {
 	char car = 0;
 	car = RecibirCaracter(PuertoCOM);
@@ -98,7 +98,8 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 				numTrama = 0;
 
 			} else if (car == '@') {
-				esFichero = false;
+				//esFichero = false;
+				finFichero = true;
 				flujoFichero.close();
 				printf("Fichero recibido\n");
 			}
@@ -149,9 +150,14 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 					if (numTrama == 1) {
 						string s(td.Datos);
 						flujoFichero.open(s);
-
 					} else if (numTrama == 2) {
 						printf("\nRecibiendo fichero por %s\n", td.Datos);
+					} else if (finFichero) {
+						printf(
+								"El fichero recibido tiene un tamano de %s bytes\n",
+								td.Datos);
+						finFichero = false;
+						esFichero = false;
 					} else
 						flujoFichero.write(td.Datos, td.L);
 
@@ -178,7 +184,7 @@ void enviarFichero(HANDLE PuertoCOM) {
 	int numCampo = 1, numDato = 0, numCar = 0, longitudFichero = 0;
 	TramaControl t;
 	TramaDatos td;
-	bool esTramaControl = false, esFichero = false;
+	bool esTramaControl = false, esFichero = false, finFichero = false;
 	ofstream flujoFicheroEscritura;
 
 	if (flujoFicheroLectura.is_open()) {
@@ -206,20 +212,24 @@ void enviarFichero(HANDLE PuertoCOM) {
 			flujoFicheroLectura.read(fichero, 254);
 			longitudFichero = flujoFicheroLectura.gcount();
 			fichero[longitudFichero] = '\0';
-			//TODO: Contar caracteres del fichero enviado
-			numCar = numCar + longitudFichero;
+
+			numCar = numCar + longitudFichero; // Contar caracteres del fichero enviado
 
 			enviarTramaDatos(PuertoCOM, fichero, longitudFichero);
 			recepcion(PuertoCOM, numCampo, numDato, t, td, esTramaControl,
-					esFichero, flujoFicheroEscritura);
+					esFichero, finFichero, flujoFicheroEscritura);
 
 		}
 
-		//TODO: Contar caracteres del fichero enviado
-		printf("%d bytes/caracteres enviados", numCar);
-
 		//Enviamos caracter fichero '@' despues de la ultima trama
 		EnviarCaracter(PuertoCOM, '@');
+
+		//Envio de caracteres del fichero enviado
+		linea = to_string(numCar);
+		char caracteres[linea.length()];
+		strcpy(caracteres, linea.c_str());
+		caracteres[linea.length()] = '\0';
+		enviarTramaDatos(PuertoCOM, caracteres, linea.length());
 
 		flujoFicheroLectura.close();
 		printf("Fichero enviado\n");
