@@ -28,14 +28,11 @@ struct TramaDatos {
 };
 
 /**
- * Metodo que envia un mensaje mediante tramas de datos
- */
-void enviarMensajePorTramas(HANDLE PuertoCOM, char vector[], int i);
-
-/**
  * Envia una trama de datos
  */
-void enviarTramaDatos(HANDLE PuertoCOM, char datos[], int numDatos);
+void enviarTramaDatos(HANDLE PuertoCOM, unsigned char dir, unsigned char num,
+		char datos[], int numDatos);
+void enviarTramaDatos(HANDLE PuertoCOM, TramaDatos td);
 
 /**
  * Calcula la cantidad de tramas necesarias
@@ -50,18 +47,12 @@ unsigned char calcularBCE(char datos[], int l);
 /**
  * Muestra la trama de datos
  */
-void mostrarTramaDatos(TramaDatos td);
-
+void mostrarTramaDatos(TramaDatos td, bool enviada);
+void mostrarTramaDatos(bool enviada, unsigned char dir, unsigned char num,
+		int L, char Datos[], unsigned char BCE);
 /**
- * Metodo que envia el fichero Fenvio.txt
+ * Muestra el campo datos de la trama de datos
  */
-void enviarFichero(HANDLE PuertoCOM);
-
-/**
- * Metodo encargado de esperar la recepcion
- */
-void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
-		TramaDatos &td, bool &esTramaControl, bool &esFichero, bool &finFichero,
-		ofstream &flujoFichero);
+void mostrarDatos(TramaDatos td);
 
 #endif /* TRAMADATOS_H_ */

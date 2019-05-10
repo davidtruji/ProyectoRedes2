@@ -9,6 +9,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <iostream>
+#include "libFRC.h"
 #include "PuertoSerie.h"
 #include "TramaControl.h"
 #include "TramaDatos.h"
@@ -102,6 +103,9 @@ void envio(char vector[], int &i) {
 			break;
 		case F3:
 			enviarFichero(PuertoCOM);
+			break;
+		case F4:
+			seleccionMaestroEsclavo(PuertoCOM);
 			break;
 
 		default:

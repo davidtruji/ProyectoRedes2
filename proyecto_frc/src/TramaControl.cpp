@@ -11,28 +11,28 @@ void mostrarTramaControl(TramaControl t, bool enviada) {
 	unsigned char control = t.C;
 	char* envioRecivo;
 
-//	if (enviada)
-//		envioRecivo = "E";
-//	else
-//		envioRecivo = "R";
+	if (enviada)
+		envioRecivo = "E";
+	else
+		envioRecivo = "R";
 
 	switch (control) {
 
 	case ENQ:
-//		printf("[%s] [%c] [ ENQ ] [%c]\n", envioRecivo, t.D, t.NT);
-		printf("Trama ENQ recibida\n");
+		printf("[%s] [%c] [ ENQ ] [%c]\n", envioRecivo, t.D, t.NT);
+		//printf("Trama ENQ recibida\n");
 		break;
 	case EOT:
-//			printf("[%s] [%c] [ EOT ] [%c]\n", envioRecivo, t.D, t.NT);
-		printf("Trama EOT recibida\n");
+		printf("[%s] [%c] [ EOT ] [%c]\n", envioRecivo, t.D, t.NT);
+		//printf("Trama EOT recibida\n");
 		break;
 	case ACK:
-//			printf("[%s] [%c] [ ACK ] [%c]\n", envioRecivo, t.D, t.NT);
-		printf("Trama ACK recibida\n");
+		printf("[%s] [%c] [ ACK ] [%c]\n", envioRecivo, t.D, t.NT);
+		//printf("Trama ACK recibida\n");
 		break;
 	case NACK:
-//			printf("[%s] [%c] [ NACK ] [%c]\n", envioRecivo, t.D, t.NT);
-		printf("Trama NACK recibida\n");
+		printf("[%s] [%c] [ NACK ] [%c]\n", envioRecivo, t.D, t.NT);
+		//printf("Trama NACK recibida\n");
 		break;
 	default:
 		printf("Trama de control desconocida\n");
@@ -83,7 +83,8 @@ void seleccionarTramaControl(HANDLE PuertoCOM) {
 				printf("OPCION NO VALIDA\n");
 				break;
 			}
-		} else printf("ACCION CANCELADA\n");
+		} else
+			printf("ACCION CANCELADA\n");
 	}
 }
 
@@ -100,6 +101,6 @@ void enviarTramaControl(HANDLE PuertoCOM, unsigned char dir,
 	EnviarCaracter(PuertoCOM, control); //Control = (05 (ENQ), 04 (EOT), 06 (ACK), 21 (NACK))
 	EnviarCaracter(PuertoCOM, num); //Numero de Trama = (En principio fijo a ‘0’)
 
-//	mostrarTramaControl(t, true);
+	mostrarTramaControl(t, true);
 
 }
