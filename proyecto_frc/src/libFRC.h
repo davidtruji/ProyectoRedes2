@@ -26,11 +26,6 @@ void enviarMensajePorTramas(HANDLE PuertoCOM, char vector[], int i);
 void enviarFichero(HANDLE PuertoCOM);
 
 /**
- * Reenvia la trama de datos pasada por parametro a traves del puerto elegido
- */
-void reenviarTramaDatos(HANDLE PuertoCOM, TramaDatos td);
-
-/**
  * Metodo que envia el fichero Fenvio.txt
  */
 void enviarFichero(HANDLE PuertoCOM);
