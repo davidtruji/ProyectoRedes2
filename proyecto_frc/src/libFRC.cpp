@@ -70,10 +70,6 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 				flujoFichero.close();
 				if (!maestro && !esclavo)
 					printf("Fichero recibido\n");
-				else {
-					finFichero = false;
-					esFichero = false;
-				}
 			}
 
 			break;
@@ -160,13 +156,21 @@ void recepcion(HANDLE PuertoCOM, int &numCampo, int &numTrama, TramaControl &t,
 
 				if (maestro || esclavo) {
 					if (td.BCE == calcularBCE(td.Datos, td.L)) { //Si el BCE va bien...
+
 						if (numTrama == 1) {
 							string s(td.Datos);
 							flujoFichero.open(s);
+
 						} else if (numTrama == 2) {
-							//Nada...
+							//	printf("\nRecibiendo fichero por %s\n", td.Datos);
+						} else if (finFichero) {
+							//printf(
+							//"El fichero recibido tiene un tamano de %s bytes\n", td.Datos
+							//);
+							finFichero = false;
+							esFichero = false;
 						} else
-							flujoFichero.write(td.Datos, td.L); //Se escriben todas las tramas menos las 1 y 2(Cabecera)
+							flujoFichero.write(td.Datos, td.L);
 
 						if (esclavo) {
 							//Mostramos la trama de datos recibida
@@ -266,13 +270,14 @@ void enviarFichero(HANDLE PuertoCOM) {
 			longitudFichero = flujoFicheroLectura.gcount();
 			fichero[longitudFichero] = '\0';
 
-			numCar = numCar + longitudFichero; // Contar caracteres del fichero enviado
+			if (longitudFichero >= 1) { //Este if controla que no se envien tramas vacias
+				numCar = numCar + longitudFichero; // Contar caracteres del fichero enviado
 
-			enviarTramaDatos(PuertoCOM, 'T', '0', fichero, longitudFichero);
+				enviarTramaDatos(PuertoCOM, 'T', '0', fichero, longitudFichero);
 
-			recepcion(PuertoCOM, numCampo, numDato, t, td, esTramaControl,
-					esFichero, finFichero, flujoFicheroEscritura);
-
+				recepcion(PuertoCOM, numCampo, numDato, t, td, esTramaControl,
+						esFichero, finFichero, flujoFicheroEscritura);
+			}
 		}
 
 		//Enviamos caracter fichero '@' despues de la ultima trama
@@ -427,7 +432,7 @@ void enviarFicheroME(HANDLE PuertoCOM, unsigned char direccion) {
 	char fichero[255], tecla;
 	string linea;
 	flujoFicheroLectura.open("EProtoc.txt");
-	int longitudFichero = 0, trama = 0;
+	int longitudFichero = 0, trama = 0, numCar = 0;
 	TramaControl t;
 	TramaDatos td;
 	bool salir = false, error = false;
@@ -478,75 +483,76 @@ void enviarFicheroME(HANDLE PuertoCOM, unsigned char direccion) {
 			longitudFichero = flujoFicheroLectura.gcount();
 			fichero[longitudFichero] = '\0';
 
-			td.S = SYN; //Sincronismo = SYN =22
-			td.D = direccion; //Direccion=(En principio fijo a ’T’)
-			td.C = STX; //Control = STX = 02;
-			if (trama % 2 == 0)
-				td.N = '0'; //NumTrama = (0 en pares);
-			else
-				td.N = '1'; //NumTrama = (1 en impares);
-			td.L = longitudFichero; //Enviamos el campo LONG
+			if (longitudFichero >= 1) {
+				td.S = SYN; //Sincronismo = SYN =22
+				td.D = direccion; //Direccion=(En principio fijo a ’T’)
+				td.C = STX; //Control = STX = 02;
+				if (trama % 2 == 0)
+					td.N = '0'; //NumTrama = (0 en pares);
+				else
+					td.N = '1'; //NumTrama = (1 en impares);
+				td.L = longitudFichero; //Enviamos el campo LONG
 
-			//Campo de datos
-			for (int i = 0; i < longitudFichero; i++) {
-				if (error && i == 0) {
-					td.Datos[i] = 'ç';
-					error = false;
-				} else
-					td.Datos[i] = fichero[i];
-			}
-
-			td.BCE = calcularBCE(fichero, td.L); //Calculo del BCE
-			//numCar = numCar + longitudFichero; // Contar caracteres del fichero enviado
-
-			enviarTramaDatos(PuertoCOM, td);
-			mostrarTramaDatos(td, true);
-
-			td.Datos[0] = fichero[0];//Esto restablece el valor original si se metió el 'ç' del error
-			td.BCE = calcularBCE(fichero, td.L);
-			esperarConfirmacion(PuertoCOM, direccion, trama, t, td);
-
-			trama++;
-
-			//SIMULACION DE ERROR EN TRAMA Y TECLA ESC
-			if (kbhit()) {
-				tecla = getch();
-				if (tecla == 27) {
-					salir = true;
-					printf("\nESC PRESIONADO SALIENDO...\n");
+				//Campo de datos
+				for (int i = 0; i < longitudFichero; i++) {
+					if (error && i == 0) {
+						td.Datos[i] = 'ç';
+						error = false;
+					} else
+						td.Datos[i] = fichero[i];
 				}
-				if (tecla == FN) { //Comprobamos si es una tecla de Función
+
+				td.BCE = calcularBCE(fichero, td.L); //Calculo del BCE
+				numCar = numCar + longitudFichero; // Contar caracteres del fichero enviado
+
+				enviarTramaDatos(PuertoCOM, td);
+				mostrarTramaDatos(td, true);
+
+				td.Datos[0] = fichero[0]; //Esto restablece el valor original si se metió el 'ç' del error
+				td.BCE = calcularBCE(fichero, td.L);
+				esperarConfirmacion(PuertoCOM, direccion, trama, t, td);
+
+				trama++;
+
+				//SIMULACION DE ERROR EN TRAMA Y TECLA ESC
+				if (kbhit()) {
 					tecla = getch();
-					if (tecla == F5) {
-						printf("*** INTRODUCIDO ERROR EN TRAMA ***\n");
-						error = true;
+					if (tecla == 27) {
+						salir = true;
+						printf("\nESC PRESIONADO SALIENDO...\n");
 					}
+					if (tecla == FN) { //Comprobamos si es una tecla de Función
+						tecla = getch();
+						if (tecla == F5) {
+							printf("*** INTRODUCIDO ERROR EN TRAMA ***\n");
+							error = true;
+						}
+					}
+
 				}
-
 			}
-
 		}
 
 		//Enviamos caracter fichero '@' despues de la ultima trama
 		EnviarCaracter(PuertoCOM, '@');
 
-//		//Envio del numero caracteres del fichero enviado
-//		linea = to_string(numCar);
-//		char caracteres[linea.length()];
-//		strcpy(caracteres, linea.c_str());
-//		caracteres[linea.length()] = '\0';
-//		if (trama % 2 == 0) {
-//			enviarTramaDatos(PuertoCOM, direccion, '0', caracteres,
-//					linea.length());
-//			mostrarTramaDatos(true, direccion, '0', linea.length(), caracteres,
-//					calcularBCE(caracteres, linea.length()));
-//		} else {
-//			enviarTramaDatos(PuertoCOM, direccion, '1', caracteres,
-//					linea.length());
-//			mostrarTramaDatos(true, direccion, '1', linea.length(), caracteres,
-//					calcularBCE(caracteres, linea.length()));
-//		}
-//		esperarConfirmacion(PuertoCOM, direccion, trama, t);
+		//Envio del numero caracteres del fichero enviado
+		linea = to_string(numCar);
+		char caracteres[linea.length()];
+		strcpy(caracteres, linea.c_str());
+		caracteres[linea.length()] = '\0';
+		if (trama % 2 == 0) {
+			enviarTramaDatos(PuertoCOM, direccion, '0', caracteres,
+					linea.length());
+			mostrarTramaDatos(true, direccion, '0', linea.length(), caracteres,
+					calcularBCE(caracteres, linea.length()));
+		} else {
+			enviarTramaDatos(PuertoCOM, direccion, '1', caracteres,
+					linea.length());
+			mostrarTramaDatos(true, direccion, '1', linea.length(), caracteres,
+					calcularBCE(caracteres, linea.length()));
+		}
+		esperarConfirmacion(PuertoCOM, direccion, trama, t, td);
 
 		flujoFicheroLectura.close();
 		//printf("Fichero enviado\n");
